@@ -1,17 +1,42 @@
 import streamlit as st
+import whisper
+import openai
+import os
+import tempfile
 
-st.set_page_config(page_title="AI Content Repurposer", layout="centered")
-st.title("AI Content Repurposer 🧠✍️")
-st.write("Turn YouTube videos into tweets, blogs, and post ideas using OpenAI.")
+openai.api_key = "sk-..."  # put in secret config later
 
-youtube_url = st.text_input("Paste YouTube URL:")
+st.title("🎥 AI Content Repurposer")
+uploaded_file = st.file_uploader("Upload a video", type=["mp4", "mov", "mkv"])
 
-if youtube_url:
-    st.success("Transcription fetched successfully ")
-    st.subheader("📝 Tweet Thread")
-    st.code("1/ Just watched this amazing video on productivity hacks...\n2/ Here's what I learned 👇")
-    
-    st.subheader("📄 Blog Draft")
-    st.write("In today's fast-paced world, productivity is everything. In this post, we'll explore...")
+if uploaded_file:
+    st.video(uploaded_file)
 
-    st.button("Generate More ➕")
+    with st.spinner("Extracting and transcribing..."):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_video:
+            tmp_video.write(uploaded_file.read())
+            tmp_video_path = tmp_video.name
+
+        audio_path = tmp_video_path.replace(".mp4", ".mp3")
+        os.system(f"ffmpeg -i {tmp_video_path} -q:a 0 -map a {audio_path} -y")
+
+        model = whisper.load_model("base")
+        result = model.transcribe(audio_path)
+        transcript = result["text"]
+
+    st.subheader("📄 Transcript")
+    st.write(transcript)
+
+    if st.button("Summarize + Analyze"):
+        with st.spinner("Thinking hard..."):
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an assistant that summarizes and analyzes content."},
+                    {"role": "user", "content": f"Here's a transcript of a video:\n\n{transcript}\n\nPlease summarize it and provide a brief analysis."}
+                ]
+            )
+            summary = response["choices"][0]["message"]["content"]
+
+        st.subheader("🧠 Summary & Analysis")
+        st.write(summary)
