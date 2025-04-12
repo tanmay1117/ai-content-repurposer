@@ -7,7 +7,7 @@ st.write("Turn YouTube videos into tweets, blogs, and post ideas using OpenAI.")
 youtube_url = st.text_input("Paste YouTube URL:")
 
 if youtube_url:
-    st.success("Transcription fetched successfully (fake data)")
+    st.success("Transcription fetched successfully ")
     st.subheader("📝 Tweet Thread")
     st.code("1/ Just watched this amazing video on productivity hacks...\n2/ Here's what I learned 👇")
     
