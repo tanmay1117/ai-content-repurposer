@@ -7,33 +7,26 @@ import os
 import shutil
 from openai import OpenAI
 
-# ✅ MUST BE FIRST Streamlit command
 st.set_page_config(page_title="AI Content Repurposer")
-# Suppress whisper FP16 warning
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Fix RuntimeError: no running event loop
 try:
     asyncio.get_running_loop()
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
 
-
-# ✅ Check if ffmpeg is installed
 if shutil.which("ffmpeg") is None:
     st.error("❌ ffmpeg is NOT available. Make sure packages.txt contains 'ffmpeg'")
 else:
     st.success("✅ ffmpeg is available.")
 
-# ✅ OpenAI client setup
 try:
     client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 except Exception as e:
     st.error(f"❌ OpenAI config error: {e}")
     st.stop()
 
-# ✅ Whisper model
 model = whisper.load_model("base")
 
 def download_video(yt_url, output_path="video.mp4"):
@@ -75,7 +68,6 @@ def ask_gpt(prompt):
         st.error(f"❌ OpenAI API error: {e}")
         return ""
 
-# ✅ UI starts here
 st.title("📼 AI Content Repurposer")
 
 yt_url = st.text_input("📺 Paste YouTube URL")
@@ -105,7 +97,6 @@ if st.button("🚀 Process Video"):
             st.markdown("### 🧠 Summary & Analysis")
             st.write(summary)
 
-# ✅ Watermark
 st.markdown("""
 <style>
 .watermark {
