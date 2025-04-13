@@ -99,7 +99,7 @@ st.markdown("""
 .watermark {
     position: fixed;
     bottom: 10px;
-    right: 10px;
+    left: 10px; /* Changed from right to left */
     background-color: #f0f0f0;
     padding: 8px 14px;
     border-radius: 10px;
