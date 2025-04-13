@@ -1,7 +1,6 @@
 import asyncio
 import warnings
 
-# Fix RuntimeError: no running event loop
 try:
     asyncio.get_running_loop()
 except RuntimeError:
@@ -10,8 +9,7 @@ except RuntimeError:
 # Optional: silence Whisper FP16 warning
 warnings.filterwarnings("ignore", category=UserWarning)
 
-import asyncio
-import warnings
+
 import streamlit as st
 import yt_dlp
 import whisper
@@ -21,6 +19,8 @@ from openai import OpenAI
 
 st.set_page_config(page_title="AI Content Repurposer")
 warnings.filterwarnings("ignore", category=UserWarning)
+
+os.environ["STREAMLIT_DISABLE_WATCHDOG_WARNINGS"] = "true"
 
 try:
     asyncio.get_running_loop()
