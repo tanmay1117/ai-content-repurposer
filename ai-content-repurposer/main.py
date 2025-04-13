@@ -5,6 +5,7 @@ import os
 import shutil
 from openai import OpenAI
 
+# ✅ MUST BE FIRST Streamlit command
 st.set_page_config(page_title="AI Content Repurposer")
 
 # ✅ Check if ffmpeg is installed
@@ -18,6 +19,7 @@ try:
     client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 except Exception as e:
     st.error(f"❌ OpenAI config error: {e}")
+    st.stop()
 
 # ✅ Whisper model
 model = whisper.load_model("base")
@@ -61,7 +63,7 @@ def ask_gpt(prompt):
         st.error(f"❌ OpenAI API error: {e}")
         return ""
 
-st.set_page_config(page_title="AI Content Repurposer")
+# ✅ UI starts here
 st.title("📼 AI Content Repurposer")
 
 yt_url = st.text_input("📺 Paste YouTube URL")
