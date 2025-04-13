@@ -1,16 +1,15 @@
 import streamlit as st
 import yt_dlp
 import whisper
-import openai
 import os
+from openai import OpenAI
 
-# Load Whisper model
+# Initialize Whisper + OpenAI Client
 model = whisper.load_model("base")
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
-# OpenAI API key from secrets
-api_key = "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"
+# ----------------- Functions ----------------- #
 
-# --- Download YouTube video ---
 def download_video(yt_url, output_path="video.mp4"):
     ydl_opts = {
         'format': 'mp4',
@@ -30,7 +29,6 @@ def download_video(yt_url, output_path="video.mp4"):
         st.error(f"❌ Download failed: {e}")
         return None
 
-# --- Transcribe using Whisper ---
 def transcribe_with_whisper(video_path):
     if not os.path.exists(video_path):
         st.error("⚠️ Video file not found.")
@@ -42,19 +40,23 @@ def transcribe_with_whisper(video_path):
         st.error(f"❌ Transcription failed: {e}")
         return ""
 
-# --- GPT Helper ---
 def ask_gpt(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.error(f"❌ OpenAI API error: {e}")
+        return ""
 
-# --- UI Layout ---
+# ----------------- Streamlit UI ----------------- #
+
 st.set_page_config(page_title="AI Content Repurposer", layout="centered")
 st.title("📼 AI Content Repurposer")
-st.caption("Upload or link a video, and let AI do the magic ✨")
+st.caption("Paste a YouTube URL or upload a video to repurpose content using AI.")
 
 yt_url = st.text_input("📺 Paste YouTube URL")
 uploaded_file = st.file_uploader("📁 Or upload an MP4 file", type=["mp4"])
@@ -70,7 +72,7 @@ if st.button("🚀 Process Video"):
         with open(video_path, "wb") as f:
             f.write(uploaded_file.read())
     else:
-        st.warning("Please provide a YouTube link or upload a video.")
+        st.warning("Please upload a video or paste a YouTube link.")
 
     if video_path and os.path.exists(video_path):
         st.success("✅ Video loaded!")
@@ -80,7 +82,7 @@ if st.button("🚀 Process Video"):
         transcript = transcribe_with_whisper(video_path)
         st.text_area("📄 Transcript", transcript, height=300)
 
-        st.info("🤖 Generating content...")
+        st.info("🤖 Generating content with GPT...")
 
         summary = ask_gpt(f"Summarize and analyze this video:\n{transcript}")
         blog = ask_gpt(f"Write a blog post based on this transcript:\n{transcript}")
@@ -103,7 +105,8 @@ if st.button("🚀 Process Video"):
         st.write(seo)
         st.download_button("💾 Download SEO Points", seo, file_name="seo_keywords.txt")
 
-# --- Watermark ---
+# ----------------- Watermark ----------------- #
+
 st.markdown("""
 <style>
 .watermark {
