@@ -5,7 +5,9 @@ import yt_dlp
 import os
 import tempfile
 
-openai.api_key = st.secrets["openai"]["api_key"]
+openai.api_key = "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
+"
+
 
 st.set_page_config(page_title="AI Content Repurposer", layout="centered")
 st.title("🎥 AI Content Repurposer")
