@@ -1,5 +1,17 @@
 import asyncio
 import warnings
+
+# Fix RuntimeError: no running event loop
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
+# Optional: silence Whisper FP16 warning
+warnings.filterwarnings("ignore", category=UserWarning)
+
+import asyncio
+import warnings
 import streamlit as st
 import yt_dlp
 import whisper
