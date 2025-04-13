@@ -1,11 +1,11 @@
 import streamlit as st
-st.set_page_config(page_title="AI Content Repurposer")  # ✅ must be FIRST
-
 import yt_dlp
 import whisper
 import os
 import shutil
 from openai import OpenAI
+
+st.set_page_config(page_title="AI Content Repurposer")
 
 # ✅ Check if ffmpeg is installed
 if shutil.which("ffmpeg") is None:
