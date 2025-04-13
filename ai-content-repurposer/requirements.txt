@@ -1,6 +1,6 @@
 streamlit
 openai
 yt-dlp
-ffmpeg-python
-torch
 openai-whisper
+torch
+ffmpeg-python
