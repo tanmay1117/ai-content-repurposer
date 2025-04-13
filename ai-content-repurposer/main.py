@@ -2,9 +2,11 @@ import streamlit as st
 import whisper
 import openai
 import os
+os.system("apt-get install -y ffmpeg")
+
 import tempfile
 
-openai.api_key = "sk-..."  # put in secret config later
+openai.api_key = "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"  # put in secret config later
 
 st.title("🎥 AI Content Repurposer")
 uploaded_file = st.file_uploader("Upload a video", type=["mp4", "mov", "mkv"])
