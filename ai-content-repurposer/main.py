@@ -108,4 +108,35 @@ if st.button("Process Video"):
                         st.subheader("📌 Summary")
                         st.write(summary)
     else:
-        st.warning("Please enter a YouTube URL.")
+        st.warning("Please enter a YouTube URL.")st.markdown(
+    """
+    <hr style="margin-top: 50px; margin-bottom: 10px;">
+    <div style='text-align: center; color: gray; font-size: 14px;'>
+        🚀 Made by <b style='color:#00BFFF;'>Tanmay</b>
+    </div>
+    """,
+    unsafe_allow_html=Truest.markdown("""
+<style>
+.watermark {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    color: #888;
+    font-size: 13px;
+    background: #f9f9f9;
+    padding: 6px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 100;
+}
+</style>
+
+<div class="watermark">
+    🚀 Made by <b style='color:#00BFFF;'>Tanmay</b>
+</div>
+""", unsafe_allow_html=True)
+
+)
+
+
+
