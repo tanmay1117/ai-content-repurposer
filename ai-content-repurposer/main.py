@@ -30,6 +30,10 @@ except Exception as e:
 model = whisper.load_model("base")
 
 def download_video(yt_url, output_path="video.mp4"):
+    # Delete old video if exists
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
     ydl_opts = {
         'format': 'mp4',
         'outtmpl': output_path,
@@ -48,13 +52,7 @@ def download_video(yt_url, output_path="video.mp4"):
         st.error(f"❌ Download failed: {e}")
         return None
 
-def transcribe_with_whisper(video_path):
-    try:
-        result = model.transcribe(video_path)
-        return result["text"]
-    except Exception as e:
-        st.error(f"❌ Transcription failed: {e}")
-        return ""
+
 
 def ask_gpt(prompt):
     try:
