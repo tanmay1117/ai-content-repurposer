@@ -3,15 +3,14 @@ import yt_dlp
 import whisper
 import openai
 import os
-from pydub import AudioSegment
 
-# Set OpenAI key from secrets
-api_key = "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"
-
+# Load Whisper model
 model = whisper.load_model("base")
 
-# --------------- Functions ---------------- #
+# OpenAI API key from secrets
 
+
+# --- Download YouTube video ---
 def download_video(yt_url, output_path="video.mp4"):
     ydl_opts = {
         'format': 'mp4',
@@ -31,15 +30,19 @@ def download_video(yt_url, output_path="video.mp4"):
         st.error(f"❌ Download failed: {e}")
         return None
 
-def extract_audio(video_path, audio_path="audio.mp3"):
-    video = AudioSegment.from_file(video_path)
-    video.export(audio_path, format="mp3")
-    return audio_path
+# --- Transcribe using Whisper ---
+def transcribe_with_whisper(video_path):
+    if not os.path.exists(video_path):
+        st.error("⚠️ Video file not found.")
+        return ""
+    try:
+        result = model.transcribe(video_path)
+        return result["text"]
+    except Exception as e:
+        st.error(f"❌ Transcription failed: {e}")
+        return ""
 
-def transcribe_audio(audio_path):
-    result = model.transcribe(audio_path)
-    return result["text"]
-
+# --- GPT Helper ---
 def ask_gpt(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -48,35 +51,33 @@ def ask_gpt(prompt):
     )
     return response.choices[0].message.content
 
-# --------------- Streamlit UI ---------------- #
-
+# --- UI Layout ---
 st.set_page_config(page_title="AI Content Repurposer", layout="centered")
-st.title("🎬 AI Content Repurposer")
-st.markdown("Turn your video into content with one click.")
+st.title("📼 AI Content Repurposer")
+st.caption("Upload or link a video, and let AI do the magic ✨")
 
-yt_url = st.text_input("📺 Enter YouTube URL")
+yt_url = st.text_input("📺 Paste YouTube URL")
 uploaded_file = st.file_uploader("📁 Or upload an MP4 file", type=["mp4"])
 
 if st.button("🚀 Process Video"):
     video_path = None
 
     if yt_url:
-        st.info("📥 Downloading YouTube video...")
+        st.info("📥 Downloading video...")
         video_path = download_video(yt_url)
     elif uploaded_file:
         video_path = "uploaded_video.mp4"
         with open(video_path, "wb") as f:
             f.write(uploaded_file.read())
     else:
-        st.warning("Please upload a video or paste a YouTube link.")
+        st.warning("Please provide a YouTube link or upload a video.")
 
     if video_path and os.path.exists(video_path):
         st.success("✅ Video loaded!")
         st.video(video_path)
 
-        audio_path = extract_audio(video_path)
-        st.info("📝 Transcribing audio...")
-        transcript = transcribe_audio(audio_path)
+        st.info("📝 Transcribing with Whisper...")
+        transcript = transcribe_with_whisper(video_path)
         st.text_area("📄 Transcript", transcript, height=300)
 
         st.info("🤖 Generating content...")
@@ -86,7 +87,6 @@ if st.button("🚀 Process Video"):
         tweets = ask_gpt(f"Turn this transcript into a tweet thread:\n{transcript}")
         seo = ask_gpt(f"Extract SEO keywords and key points from this transcript:\n{transcript}")
 
-        # Show results
         st.markdown("### 🧠 Summary & Analysis")
         st.write(summary)
         st.download_button("💾 Download Summary", summary, file_name="summary.txt")
@@ -103,23 +103,24 @@ if st.button("🚀 Process Video"):
         st.write(seo)
         st.download_button("💾 Download SEO Points", seo, file_name="seo_keywords.txt")
 
-# --------------- Watermark ---------------- #
+# --- Watermark ---
 st.markdown("""
 <style>
 .watermark {
     position: fixed;
     bottom: 10px;
     right: 10px;
-    color: #888;
-    font-size: 13px;
-    background: #f9f9f9;
-    padding: 6px 12px;
+    background-color: #f0f0f0;
+    padding: 8px 14px;
     border-radius: 10px;
+    font-size: 13px;
+    color: #333;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    font-weight: 500;
     z-index: 100;
 }
 </style>
 <div class="watermark">
-    🚀 Made by <b style='color:#00BFFF;'>Tanmay</b>
+    🚀 Made by <b style='color:#007bff;'>Tanmay Pareek</b>
 </div>
 """, unsafe_allow_html=True)
