@@ -1,3 +1,5 @@
+import asyncio
+import warnings
 import streamlit as st
 import yt_dlp
 import whisper
@@ -7,6 +9,16 @@ from openai import OpenAI
 
 # ✅ MUST BE FIRST Streamlit command
 st.set_page_config(page_title="AI Content Repurposer")
+# Suppress whisper FP16 warning
+warnings.filterwarnings("ignore", category=UserWarning)
+
+# Fix RuntimeError: no running event loop
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
+
 
 # ✅ Check if ffmpeg is installed
 if shutil.which("ffmpeg") is None:
