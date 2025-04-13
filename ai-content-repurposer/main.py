@@ -8,7 +8,7 @@ import os
 model = whisper.load_model("base")
 
 # OpenAI API key from secrets
-
+api_key = "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"
 
 # --- Download YouTube video ---
 def download_video(yt_url, output_path="video.mp4"):
