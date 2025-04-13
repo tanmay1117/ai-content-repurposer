@@ -1,44 +1,65 @@
 import streamlit as st
 import whisper
 import openai
+import yt_dlp
 import os
-os.system("apt-get install -y ffmpeg")
-
 import tempfile
 
-openai.api_key = "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"  # put in secret config later
+openai.api_key = st.secrets["openai"]["api_key"]
 
+st.set_page_config(page_title="AI Content Repurposer", layout="centered")
 st.title("🎥 AI Content Repurposer")
-uploaded_file = st.file_uploader("Upload a video", type=["mp4", "mov", "mkv"])
+st.caption("Paste a YouTube video and turn it into a blog, tweet thread, key points & more!")
 
-if uploaded_file:
-    st.video(uploaded_file)
+yt_url = st.text_input("📎 Paste a YouTube video URL")
 
-    with st.spinner("Extracting and transcribing..."):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_video:
-            tmp_video.write(uploaded_file.read())
-            tmp_video_path = tmp_video.name
+if yt_url:
 
-        audio_path = tmp_video_path.replace(".mp4", ".mp3")
-        os.system(f"ffmpeg -i {tmp_video_path} -q:a 0 -map a {audio_path} -y")
+    # 🎬 MP4 Downloader
+    if st.button("⬇️ Download Full Video (MP4)"):
+        with st.spinner("Downloading video in MP4..."):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                mp4_path = os.path.join(tmpdir, "video.mp4")
 
-        model = whisper.load_model("base")
-        result = model.transcribe(audio_path)
-        transcript = result["text"]
+                ydl_opts = {
+                    'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+                    'outtmpl': mp4_path,
+                    'quiet': True,
+                    'merge_output_format': 'mp4',
+                }
 
-    st.subheader("📄 Transcript")
-    st.write(transcript)
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([yt_url])
 
-    if st.button("Summarize + Analyze"):
-        with st.spinner("Thinking hard..."):
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an assistant that summarizes and analyzes content."},
-                    {"role": "user", "content": f"Here's a transcript of a video:\n\n{transcript}\n\nPlease summarize it and provide a brief analysis."}
-                ]
-            )
-            summary = response["choices"][0]["message"]["content"]
+                with open(mp4_path, 'rb') as f:
+                    video_data = f.read()
+                    st.download_button(
+                        label="🎬 Click to Download MP4",
+                        data=video_data,
+                        file_name="youtube_video.mp4",
+                        mime="video/mp4"
+                    )
 
-        st.subheader("🧠 Summary & Analysis")
-        st.write(summary)
+    # 🔊 Audio + Transcription
+    with st.spinner("🎧 Downloading audio & transcribing..."):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "video.%(ext)s")
+
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': output_path,
+                'quiet': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([yt_url])
+
+            for file in os.listdir(tmpdir):
+                if file.endswith(".mp3"):
+                    audio_path = os.path.join(tmpdir, file)
+                    break
